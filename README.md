@@ -6,9 +6,10 @@ This repository contains the files utilized during the tutorial presented in the
 <p align="center"><img src="/image/logo_cilium.png" width="40%" alt="TraceTest Logo" /></p>
 
 What you will learn
-* How to deploy TraceTest
-* how to configure your OpenTelemetry Pipeline
-* how to Build a traceTest test case
+* How to deploy Cilium & hubble
+* How to ingest the Cilium/hubble metrics in Dynatrace using the OpenTeletry Collector
+* Try the Hubble-otel project
+* Create a CiliumNetworkPolicy
 
 This repository showcase the usage of the Cilium  with :
 * the Otel-demo
@@ -17,6 +18,8 @@ This repository showcase the usage of the Cilium  with :
 * the Istio integration  
 * Prometheus
 * Dynatrace
+
+if you don't have a Dynatrace Tenant, you can start a [trial](https://bit.ly/3KxWDvY)
 
 ## Prerequisite
 The following tools need to be install on your machine :
@@ -29,8 +32,7 @@ The following tools need to be install on your machine :
 
 ## Deployment Steps in GCP
 
-You will first need a Kubernetes cluster with 2 Nodes.
-You can either deploy on Minikube or K3s or follow the instructions to create GKE cluster:
+You will first need a Kubernetes cluster with 4 Nodes.
 ### 1.Create a Google Cloud Platform Project
 ```
 PROJECT_ID="<your-project-id>"
@@ -50,12 +52,10 @@ gcloud container clusters create "${NAME}" \
  --zone ${ZONE} --machine-type=e2-standard-2 --num-nodes=4
 ```
 
-gcloud container clusters create test-cilium --enable-dataplane-v2 --enable-ip-alias --release-channel rapid --zone ${ZONE} --machine-type=e2-standard-2 --num-nodes=2
-
 ### 3.Clone the Github Repository
 ```
-git clone https://github.com/isItObservable/Cilium
-cd Cilium
+git clone https://github.com/isItObservable/cilium-hubble
+cd cilium-hubble
 ```
 ### 4.Install Cilium & Hubble
 #### 1. Install Cilium CLI
