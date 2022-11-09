@@ -1,0 +1,101 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: oteld
+  labels:
+    component: otel-collector
+spec:
+  mode: daemonset
+  hostNetwork: false
+  serviceAccount: otelcontribcol
+  image: otel/opentelemetry-collector-contrib:0.60.0
+  ports:
+    - name: prometheus
+      port: 9090
+      targetPort: 9090
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+      zipkin:
+        endpoint: 0.0.0.0:9411
+
+      otlp/spanmetrics:
+        protocols:
+          grpc:
+            endpoint: "localhost:65535"
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'kubernetes-endpoints'
+              scrape_interval: 5s
+              static_configs:
+              - targets: ['hubble-metrics.kube-system.svc:9965','cilium-operator-metric.kube-system.svc:9963','cilium-agent-metric.kube-system.svc:9962']
+    processors:
+      batch:
+        send_batch_max_size: 1000
+        timeout: 30s
+        send_batch_size : 800
+
+      spanmetrics:
+        metrics_exporter: dynatrace
+
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 70
+        spike_limit_percentage: 30
+
+      k8sattributes:
+        auth_type: serviceAccount
+        passthrough: false
+        filter:
+          node_from_env_var: K8S_NODE_NAME
+        extract:
+          metadata:
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.deployment.name
+            - k8s.namespace.name
+            - k8s.node.name
+            - k8s.pod.start_time
+
+    exporters:
+      logging:
+      otlphttp:
+        endpoint: DT_TENANT_URL/api/v2/otlp
+        headers:
+          Authorization: "Api-Token DT_TOKEN"
+
+      dynatrace:
+        # optional - Dimensions specified here will be included as a dimension on every exported metric
+        #            unless that metric already has a dimension with the same key.
+        # optional - prefix will be prepended to each metric name in prefix.name format
+        prefix: cilium
+        endpoint: DT_TENANT_URL/api/v2/metrics/ingest
+        # Token must at least have the Ingest metrics (metrics.ingest) permission
+        api_token: "DT_TOKEN"
+
+
+      prometheus:
+        endpoint: "0.0.0.0:9090"
+        namespace: default
+
+      otlp/spanmetrics:
+          endpoint: "localhost:55677"
+          tls:
+            insecure: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp,zipkin]
+          processors: [memory_limiter,k8sattributes,spanmetrics,batch]
+          exporters: [otlphttp, logging]
+        metrics:
+          receivers: [otlp,prometheus]
+          processors: [memory_limiter,k8sattributes,batch]
+          exporters: [dynatrace]
+        metrics/spanmetrics:
+          receivers: [otlp/spanmetrics]
+          exporters: [otlp/spanmetrics]
