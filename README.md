@@ -198,12 +198,10 @@ CLUSTERID=$(kubectl get namespace kube-system -o jsonpath='{.metadata.uid}')
 CLUSTERNAME="YOUR OWN NAME"
 sed -i "s,CLUSTER_ID_TO_REPLACE,$CLUSTERID," kubernetes-manifests/openTelemetry-sidecar.yaml
 sed -i "s,CLUSTER_NAME_TO_REPLACE,$CLUSTERNAME," kubernetes-manifests/openTelemetry-sidecar.yaml
-sed -i "s,TEMPO_TO_REPLACE,$TEMPO_SERICE_NAME," kubernetes-manifests/openTelemetry-manifest.yaml
 sed -i "s,DT_TOKEN,$DATA_INGEST_TOKEN," kubernetes-manifests/openTelemetry-manifest.yaml
 sed -i "s,DT_TENANT_URL,$DT_TENANT_URL," kubernetes-manifests/openTelemetry-manifest.yaml
-sed -i "s,DT_TOKEN,$DATA_INGEST_TOKEN," kubernetes-manifests/openTelemetry-hubble.yaml
-sed -i "s,DT_TENANT_URL,$DT_TENANT_URL," kubernetes-manifests/openTelemetry-hubble.yaml
-
+sed -i "s,CLUSTER_ID_TO_REPLACE,$CLUSTERID," kubernetes-manifests/openTelemetry-sidecar_hubble.yaml
+sed -i "s,CLUSTER_NAME_TO_REPLACE,$CLUSTERNAME," kubernetes-manifests/openTelemetry-sidecar_hubble.yaml
 ```
 #### Deploy the OpenTelemetry Collector
 ```
@@ -229,7 +227,7 @@ kubectl apply -f istio/otel-demo-gateway.yaml
 Open hubble.IP_TO_REPLACE.nip.io
 <p align="center"><img src="/image/hubble.png" width="40%" alt="hubble" /></p>
 
-### 9. Modify the openTelemtry pipeline
+### 9. Hubble OTEL
 Cilium provide an experimental Collector recevier "hubble"
 let's modify the current traffic to:
 - produce openTelemtry measurements from otel-demo 
@@ -258,3 +256,5 @@ kubectl apply -f cilium/CiliumNetworkPolicy_collector.yaml
 ```
 #### 5.  Let's open Hubble
 
+Open hubble.IP_TO_REPLACE.nip.io
+<p align="center"><img src="/image/hubble.png" width="40%" alt="hubble" /></p>

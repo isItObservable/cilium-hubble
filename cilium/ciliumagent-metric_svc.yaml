@@ -39,6 +39,7 @@ metadata:
   namespace: kube-system
   labels:
     app: cilium
+    release: prom
     k8s-app: cilium
 spec:
   selector:
@@ -56,6 +57,7 @@ metadata:
   labels:
     name: cilium-operator
     io.cilium/app: operator
+    release: prom
 spec:
   selector:
     matchLabels:
@@ -71,6 +73,7 @@ metadata:
   namespace: kube-system
   labels:
     k8s-app: hubble
+    release: prom
 spec:
   selector:
     matchLabels:
